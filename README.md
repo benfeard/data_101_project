@@ -1,16 +1,7 @@
----
-title: "Data Science 101 - Project 2"
-author: "Benfeard Williams, Isabel Decolin, Rene Zhang, Raul Miranda"
-date: "8/20/2020"
-output: 
-    html_document:
-        toc: yes
-        toc_depth: '2'
-        keep_md: true
-geometry: right=2.5in
----
+# Data Science 101 - Project 2
+by Benfeard Williams, Isabel Decolin, Rene Zhang, and Raul Miranda on 8/20/2020
 
-
+>This project was for Montgomery College Data Science 101
 
 # Introduction
 
