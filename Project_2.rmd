@@ -96,6 +96,17 @@ firefighters2 <- mutate(firefighters2, Days.After.Incident = Date.of.Death - Dat
 str(firefighters2$Days.After.Incident)
 ```
 
+## Data cleaning up for factors
+
+Cause of Death, Nature of Death, Property Type, and Activity are strings with a lot of potential answers to organize.
+
+```{r}
+levels(firefighters2$Activity)
+levels(firefighters2$Cause.Of.Death)
+levels(firefighters2$Nature.Of.Death)
+levels(firefighters2$Property.Type)
+```
+
 # Data Analysis
 
 ## Gender Information
