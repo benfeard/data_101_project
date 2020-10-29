@@ -109,12 +109,31 @@ firefighters[which(is.na(firefighters$Last.Name)),]      ## which row has Last.N
 
 ```r
 # remove row 762 and column "X"
-firefighters <- firefighters[-762, c(1:13)]
-str(firefighters) # leaving 2004 records and 13 variables
+#firefighters <- firefighters[-762, c(1:13)]
+#str(firefighters) # leaving 2004 records and 13 variables
+
+# Alternatively, search for the incorrect column and then remove the extra column later when select columns useful for analysis
+toRemove = c()
+for (index in seq_along(firefighters$Last.Name)) {
+    lastname <- firefighters$Last.Name[index]
+    if (is.na(lastname)){
+        toRemove <- c(toRemove, index)
+    }
+}
+toRemove
 ```
 
 ```
-## 'data.frame':	2004 obs. of  13 variables:
+## [1] 762
+```
+
+```r
+firefighters <- firefighters[-toRemove, ]
+str(firefighters)
+```
+
+```
+## 'data.frame':	2004 obs. of  14 variables:
 ##  $ First.Name      : chr  "Robert" "Lee" "Ronald" "Allen" ...
 ##  $ Last.Name       : chr  "Pollard" "Purdy" "Osadacz" "Streeter" ...
 ##  $ Age             : chr  "64" "57" "36" "58" ...
@@ -128,6 +147,7 @@ str(firefighters) # leaving 2004 records and 13 variables
 ##  $ Activity        : chr  "Vehicle Passenger" "Advance Hose Lines/Fire Attack" "Advance Hose Lines/Fire Attack" "Advance Hose Lines/Fire Attack" ...
 ##  $ Emergency       : chr  "Yes" "Yes" "Yes" "Yes" ...
 ##  $ Property.Type   : chr  "Outdoor Property" "Residential" "Street/Road" "Outdoor Property" ...
+##  $ X               : chr  NA NA NA NA ...
 ```
 
 Now we can format the columns and remove extraneous information that we won't use in the analysis like Last.Name. We'll also get rid of rank which has too many levels without a good method of comparing them.
@@ -150,7 +170,7 @@ str(firefighters2)
 ```
 
 ```
-## 'data.frame':	2004 obs. of  11 variables:
+## 'data.frame':	2004 obs. of  12 variables:
 ##  $ First.Name      : chr  "Robert" "Lee" "Ronald" "Allen" ...
 ##  $ Age             : int  64 57 36 58 37 53 52 47 23 74 ...
 ##  $ Classification  : Factor w/ 8 levels "Career","Industrial",..: 5 5 5 5 5 1 5 5 5 5 ...
@@ -162,6 +182,7 @@ str(firefighters2)
 ##  $ Activity        : Factor w/ 22 levels "Advance Hose Lines/Fire Attack",..: 20 1 1 1 9 17 6 19 19 1 ...
 ##  $ Emergency       : Factor w/ 2 levels "No","Yes": 2 2 2 2 1 1 1 2 2 2 ...
 ##  $ Property.Type   : Factor w/ 12 levels "Educational",..: 6 8 11 6 5 10 5 11 11 8 ...
+##  $ X               : chr  NA NA NA NA ...
 ```
 
 ## Add New Column
@@ -175,6 +196,61 @@ str(firefighters2$Days.After.Incident)
 ```
 ##  'difftime' num [1:2004] 1 0 0 0 ...
 ##  - attr(*, "units")= chr "days"
+```
+
+## Data cleaning up for factors
+
+Cause of Death, Nature of Death, Property Type, and Activity are strings with a lot of potential answers to organize.
+
+
+```r
+levels(firefighters2$Activity)
+```
+
+```
+##  [1] "Advance Hose Lines/Fire Attack"    "Emergency Response"               
+##  [3] "EMS/Patient Care"                  "Extrication"                      
+##  [5] "Fitness Activity"                  "In-Station Duties"                
+##  [7] "Incident Command"                  "Not on Scene"                     
+##  [9] "Other"                             "Personal Vehicle Driver/Passenger"
+## [11] "Pump Operations"                   "Salvage and Overhaul"             
+## [13] "Scene Safety"                      "Search and Rescue"                
+## [15] "Setup"                             "Standby"                          
+## [17] "Support"                           "Unknown"                          
+## [19] "Vehicle Driver"                    "Vehicle Passenger"                
+## [21] "Ventilation"                       "Water Supply"
+```
+
+```r
+levels(firefighters2$Cause.Of.Death)
+```
+
+```
+##  [1] "Assault"             "Collapse"            "Contact"            
+##  [4] "Disorientation"      "Exposure"            "Fall"               
+##  [7] "Impact"              "Other"               "Smoke"              
+## [10] "Stress/Overexertion" "Trapped"             "Unknown"            
+## [13] "Vehicle Collision"
+```
+
+```r
+levels(firefighters2$Nature.Of.Death)
+```
+
+```
+##  [1] "Burns"           "Drowning"        "Electrocution"   "Heart Attack"   
+##  [5] "Heat Exhaustion" "Other"           "Stroke"          "Suffocation"    
+##  [9] "Trauma"          "Unknown"         "Violence"
+```
+
+```r
+levels(firefighters2$Property.Type)
+```
+
+```
+##  [1] "Educational"      "Industrial"       "Institutional"    "Manufacturing"   
+##  [5] "N/A"              "Outdoor Property" "Public Assembly"  "Residential"     
+##  [9] "Storage"          "Store/Office"     "Street/Road"      "Vacant Property"
 ```
 
 # Data Analysis
@@ -216,7 +292,7 @@ dim(fire_11)
 ```
 
 ```
-## [1] 343  14
+## [1] 343  15
 ```
 
 ```r
@@ -224,7 +300,7 @@ dim(fire_wild)
 ```
 
 ```
-## [1] 121  14
+## [1] 121  15
 ```
 
 ```r
@@ -232,7 +308,7 @@ dim(fire_main)  # show the number of rows and columns in each subset
 ```
 
 ```
-## [1] 1537   14
+## [1] 1537   15
 ```
 
 ```r
@@ -265,7 +341,7 @@ group_by(age_class, Classification) %>% summarize(mean_age = mean(as.numeric(Age
 ggplot(fire_main, aes(x=Classification, y=Age)) + geom_boxplot(fill="slateblue", alpha=0.2) + xlab("Career Class")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 Observation: career firefighters perish an average of 5.6 years younger than Volunteers. This is likely a consequence of: younger enrollment, higher exposure to risk, but those are not testable hypotheses with this dataset.
 
@@ -276,7 +352,7 @@ Observation: career firefighters perish an average of 5.6 years younger than Vol
 ggplot(fire_wild, aes(x=Age)) + geom_histogram(binwidth = 1)
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ```r
 mean(na.omit(fire_wild$Age))
@@ -314,13 +390,13 @@ group_by(fire_wild, Classification) %>% summarize(mean_age = mean(as.numeric(Age
 ggplot(fire_main, aes(x=Emergency)) + geom_histogram(stat="count")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 fire_main %>% drop_na(Duty) %>% ggplot() + geom_histogram(aes(x=Duty), stat = "count")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
 
 ```r
 group_by(fire_main, Duty) %>% summarize(mean_age = mean(as.numeric(Age), na.rm = TRUE), sd_age = sd(as.numeric(Age), na.rm = TRUE), total = n())
@@ -343,7 +419,7 @@ group_by(fire_main, Duty) %>% summarize(mean_age = mean(as.numeric(Age), na.rm =
 ggplot(fire_main) + aes(x = Duty, fill = factor(Classification)) + geom_bar(position = "fill") + coord_flip() + ggtitle("Firefighter Fatalities Based On Duty By Classifications")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-8-3.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-9-3.png)<!-- -->
 
 ## What Is The Leading Cause of Death?
 
@@ -377,14 +453,14 @@ stress <- filter(fire_main, Cause.Of.Death == "Stress/Overexertion")
 ggplot(stress, aes(x=Age)) + geom_histogram(binwidth=3) + ggtitle("Cause of Death: Stress/Overexertion")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 top_4_cause <- filter(fire_main, Cause.Of.Death == c("Stress/Overexertion", "Impact", "Vehicle Collision", "Trapped"))
 ggplot(top_4_cause, aes(x=Cause.Of.Death, y=Age)) + geom_boxplot(fill="slateblue", alpha=0.2) + ggtitle("Top 4 Causes of Death")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
 
 
 ## Time and Date Analysis: are there any temporal trends?
@@ -396,7 +472,7 @@ We first looked out how long firefighters stay alive after their fatal incident 
 fire_main %>% select(Age, Days.After.Incident) %>% na.omit() %>% ggplot(aes(x=Age, y=Days.After.Incident)) + geom_point() + geom_smooth(method = lm) + ggtitle("Age vs Days Surviving After Fatal Incident") + xlab("Age (years)") + ylab("Surviving Days After Fatal Incident")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 ```r
 head(fire_main %>% group_by(Days.After.Incident) %>% summarize(total = n()))
@@ -465,19 +541,19 @@ Next, we asked if there is a relationship between the age of firefighters and th
 ggplot(fire_main, aes(x=Date.of.Incident, y=Age)) + geom_point()
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 ```r
 fire_main %>% drop_na(gender) %>% filter(Date.of.Incident >= as.Date("2000-01-01")) %>%ggplot(aes(x=Date.of.Incident, y=Age, color=gender)) + geom_point() + geom_smooth(method=lm) + labs(title = "Age at Fatal Incident over Time", subtitle = "Non-wildland Firefighters") + xlab("Date (years)") + ylab("Age (years)")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-12-2.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
 
 ```r
 fire_wild %>% drop_na(gender) %>% filter(Date.of.Incident >= as.Date("2000-01-01")) %>% ggplot(aes(x=Date.of.Incident, y=Age, color=gender)) + geom_point() + geom_smooth(method=lm) + labs(title = "Age at Fatal Incident over Time", subtitle = "Wildland Firefighters") + xlab("Date (years)") + ylab("Age (years)")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-12-3.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
 
 Both the Wildland and non-Wildland firefighters have weak trends over time. Females and males have same trends, with females dying at an earlier age. With non-Wildland firefighters, there is a weak upward trend line suggesting that the fighters may experience fatal incidents at a higher age. This could mean the firefighters are more experienced and have received more training allowing them to live longer. The Wildland firefighters have a weak downward trend which is most likely biased by several young firefighters dying during the Yarnell Hill Fire on June 30th, 2013.
 
@@ -488,12 +564,12 @@ Next, we wanted to take a deeper look into these trends by analyzing the number 
 fire_main %>% drop_na(Date.of.Incident) %>% ggplot() + geom_histogram(aes(x=format(Date.of.Death, "%Y")), stat = "count") + labs(title = "Fatalities over Time", subtitle = "Non-wildland Firefighters") + xlab("Year") + ylab("Total Deaths")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 ```r
 fire_wild %>% drop_na(Date.of.Incident) %>% ggplot() + geom_histogram(aes(x=format(Date.of.Death, "%Y")), stat = "count") + labs(title = "Fatalities over Time", subtitle = "Wildland Firefighters") + xlab("Year") + ylab("Total Deaths")
 ```
 
-![](Project_2_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
+![](Project_2_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
 
 We conclude that non-Wildland firefighters have seen a slight decrease in total deaths when comparing the 2000-2008 and 2009-2015. Wildland firefighters show no trends over the years. The data does highlight that the Yarnel Hill Fire was a significant event for Wildland firefighters.

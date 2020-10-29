@@ -67,8 +67,20 @@ firefighters[which(is.na(firefighters$Last.Name)),]      ## which row has Last.N
 
 ```{r, message=FALSE, warning=FALSE}
 # remove row 762 and column "X"
-firefighters <- firefighters[-762, c(1:13)]
-str(firefighters) # leaving 2004 records and 13 variables
+#firefighters <- firefighters[-762, c(1:13)]
+#str(firefighters) # leaving 2004 records and 13 variables
+
+# Alternatively, search for the incorrect column and then remove the extra column later when select columns useful for analysis
+toRemove = c()
+for (index in seq_along(firefighters$Last.Name)) {
+    lastname <- firefighters$Last.Name[index]
+    if (is.na(lastname)){
+        toRemove <- c(toRemove, index)
+    }
+}
+toRemove
+firefighters <- firefighters[-toRemove, ]
+str(firefighters)
 ```
 
 Now we can format the columns and remove extraneous information that we won't use in the analysis like Last.Name. We'll also get rid of rank which has too many levels without a good method of comparing them.
